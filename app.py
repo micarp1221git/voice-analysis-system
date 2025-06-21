@@ -428,7 +428,7 @@ def main():
     .stProgress > div > div > div {
         background-color: #3B82F6 !important;
     }
-    /* 入力フィールド - プロフェッショナルな入力エリア */
+    /* 入力フィールド - 統一されたプロフェッショナルデザイン */
     .stTextInput > div > div > input {
         background-color: #F0F4F8 !important;
         border: 2px solid #CBD5E1 !important;
@@ -439,7 +439,7 @@ def main():
         transition: all 0.2s ease !important;
     }
     .stTextInput > div > div > input:focus {
-        background-color: #FFFFFF !important;
+        background-color: #F0F4F8 !important;
         border-color: #2563EB !important;
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
         color: #1E293B !important;
@@ -449,7 +449,7 @@ def main():
         font-style: italic !important;
     }
     
-    /* セレクトボックス - プロフェッショナルな入力エリア */
+    /* セレクトボックス - 統一されたプロフェッショナルデザイン */
     .stSelectbox > div > div > div {
         background-color: #F0F4F8 !important;
         border: 2px solid #CBD5E1 !important;
@@ -460,30 +460,50 @@ def main():
         transition: all 0.2s ease !important;
     }
     .stSelectbox > div > div > div > div {
-        background-color: transparent !important;
+        background-color: #F0F4F8 !important;
         color: #1E293B !important;
     }
     .stSelectbox > div > div > div:focus-within {
-        background-color: #FFFFFF !important;
+        background-color: #F0F4F8 !important;
         border-color: #2563EB !important;
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+    }
+    /* プルダウンのコンテンツエリア */
+    .stSelectbox [data-baseweb="select"] {
+        background-color: #F0F4F8 !important;
+    }
+    .stSelectbox [data-baseweb="select"] > div {
+        background-color: #F0F4F8 !important;
+        color: #1E293B !important;
+        font-weight: 500 !important;
     }
     /* プルダウンオプション */
     .stSelectbox > div > div > div > div > div {
         color: #1E293B !important;
         background-color: #FFFFFF !important;
     }
-    /* 選択後の値 */
-    .stSelectbox [data-baseweb="select"] > div {
-        color: #1E293B !important;
-        font-weight: 500 !important;
-    }
     /* プルダウン矢印 */
     .stSelectbox [data-baseweb="select"] svg {
         fill: #475569 !important;
     }
+    /* プルダウンの選択値表示エリア */
+    .stSelectbox [data-baseweb="select"] [data-baseweb="select-value"] {
+        background-color: #F0F4F8 !important;
+        color: #1E293B !important;
+    }
+    /* プルダウンの全セレクタ統一 */
+    .stSelectbox div[data-baseweb="select"] div {
+        background-color: #F0F4F8 !important;
+        color: #1E293B !important;
+    }
+    .stSelectbox div[data-baseweb="select"] {
+        background-color: #F0F4F8 !important;
+    }
+    .stSelectbox div[data-baseweb="select"] span {
+        color: #1E293B !important;
+    }
     
-    /* ファイルアップローダー - プロフェッショナルな入力エリア */
+    /* ファイルアップローダー - 統一されたプロフェッショナルデザイン */
     .stFileUploader > div {
         background-color: #F0F4F8 !important;
         border: 2px dashed #94A3B8 !important;
