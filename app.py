@@ -24,7 +24,13 @@ class VoiceAnalyzer:
         
     def load_audio(self, audio_file):
         """音声ファイルを読み込む"""
-        with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{audio_file.name.split(".")[-1]}') as tmp_file:
+        file_extension = audio_file.name.split(".")[-1].lower()
+        
+        # M4Aファイルの場合は先にエラーメッセージを表示
+        if file_extension == 'm4a':
+            raise ValueError("M4Aファイルは現在サポートされていません。WAV、MP3ファイルをご利用ください。")
+        
+        with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{file_extension}') as tmp_file:
             tmp_file.write(audio_file.getvalue())
             tmp_file_path = tmp_file.name
         
@@ -51,6 +57,9 @@ class VoiceAnalyzer:
         except Exception as e:
             if os.path.exists(tmp_file_path):
                 os.unlink(tmp_file_path)
+            # より分かりやすいエラーメッセージ
+            if "Format not recognised" in str(e):
+                raise ValueError(f"音声ファイル形式({file_extension})がサポートされていません。WAVまたはMP3ファイルをご利用ください。")
             raise e
     
     def analyze_voice(self, y, sr, purpose):
@@ -410,8 +419,8 @@ def main():
         
         audio_file = st.file_uploader(
             "音声ファイルをアップロード",
-            type=['wav', 'mp3', 'm4a', 'flac'],
-            help="30秒以上の音声ファイルが必要です"
+            type=['wav', 'mp3'],
+            help="30秒以上のWAVまたはMP3ファイルが必要です（M4A、FLACは現在未対応）"
         )
         
         submitted = st.form_submit_button("分析開始", type="primary", use_container_width=True)
