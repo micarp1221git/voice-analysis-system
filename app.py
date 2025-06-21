@@ -43,13 +43,10 @@ class VoiceAnalyzer:
             
             duration = len(y) / sr
             
-            # 30秒以下の音声の場合はエラー
-            if duration < 30:
-                os.unlink(tmp_file_path)
-                return None, None, duration
-                
-            # 30秒にトリミング
-            y = y[:int(30 * sr)]
+            # 30秒より長い場合は30秒にトリミング
+            if duration > 30:
+                y = y[:int(30 * sr)]
+                duration = 30.0
             
             os.unlink(tmp_file_path)
             return y, sr, 30.0
@@ -420,7 +417,7 @@ def main():
         audio_file = st.file_uploader(
             "音声ファイルをアップロード",
             type=['wav', 'mp3'],
-            help="30秒以上のWAVまたはMP3ファイルが必要です"
+            help="WAVまたはMP3ファイル（30秒を超える場合は自動で30秒にカット）"
         )
         
         # ファイル形式の注意書き
@@ -516,8 +513,8 @@ def main():
                     st.error("🚫 M4Aファイルは対応していません。WAVまたはMP3ファイルをご利用ください。")
                 elif "音声ファイル形式" in error_msg and "がサポートされていません" in error_msg:
                     st.error("🚫 このファイル形式は対応していません。WAVまたはMP3ファイルをご利用ください。")
-                elif "30秒以上である必要があります" in error_msg:
-                    st.error("⏱️ 音声が短すぎます。30秒以上の音声ファイルをご利用ください。")
+                elif "音声が短すぎます" in error_msg:
+                    st.error("⏱️ 音声ファイルに問題があります。別のファイルをお試しください。")
                 elif "音声ファイルの読み込みエラー" in error_msg:
                     st.error("📁 音声ファイルが壊れているか、読み込めません。別のファイルをお試しください。")
                 else:
