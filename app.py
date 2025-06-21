@@ -489,16 +489,18 @@ def main():
                 st.info(diagnosis)
                 
                 # 音声波形とスペクトログラム
-                with st.expander("🔊 詳細な音声分析データ"):
-                    tab1, tab2 = st.tabs(["波形", "スペクトログラム"])
-                    
-                    with tab1:
-                        waveform_fig = analyzer.create_waveform(y_trimmed, sr)
-                        st.pyplot(waveform_fig)
-                    
-                    with tab2:
-                        spectrogram_fig = analyzer.create_spectrogram(y_trimmed, sr)
-                        st.pyplot(spectrogram_fig)
+                st.subheader("🔊 詳細な音声分析データ")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown("**波形**")
+                    waveform_fig = analyzer.create_waveform(y_trimmed, sr)
+                    st.pyplot(waveform_fig)
+                
+                with col2:
+                    st.markdown("**スペクトログラム**")
+                    spectrogram_fig = analyzer.create_spectrogram(y_trimmed, sr)
+                    st.pyplot(spectrogram_fig)
                 
                 # 結果画像の生成
                 result_image = analyzer.create_result_image(
