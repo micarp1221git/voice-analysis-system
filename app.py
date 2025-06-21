@@ -428,58 +428,86 @@ def main():
     .stProgress > div > div > div {
         background-color: #3B82F6 !important;
     }
-    /* 入力フィールド */
+    /* 入力フィールド - 記入欄とわかるデザイン */
     .stTextInput > div > div > input {
-        background-color: #FFFFFF !important;
+        background-color: #F9FAFB !important;
         border: 2px solid #D1D5DB !important;
         border-radius: 6px !important;
-        color: #1F2937 !important;
+        color: #111827 !important;
         font-weight: 500 !important;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.05) !important;
     }
     .stTextInput > div > div > input:focus {
         background-color: #FFFFFF !important;
         border-color: #3B82F6 !important;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
-        color: #1F2937 !important;
+        color: #111827 !important;
     }
     .stTextInput > div > div > input::placeholder {
-        color: #9CA3AF !important;
+        color: #6B7280 !important;
     }
-    /* セレクトボックス */
+    /* セレクトボックス - 記入欄とわかるデザイン */
     .stSelectbox > div > div > div {
-        background-color: #FFFFFF !important;
+        background-color: #F9FAFB !important;
         border: 2px solid #D1D5DB !important;
         border-radius: 6px !important;
-        color: #1F2937 !important;
+        color: #111827 !important;
         font-weight: 500 !important;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.05) !important;
     }
     .stSelectbox > div > div > div > div {
-        background-color: #FFFFFF !important;
-        color: #1F2937 !important;
+        background-color: #F9FAFB !important;
+        color: #111827 !important;
     }
-    /* ファイルアップローダー */
-    .stFileUploader > div {
+    .stSelectbox > div > div > div:focus-within {
         background-color: #FFFFFF !important;
-        border: 2px dashed #D1D5DB !important;
+        border-color: #3B82F6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+    }
+    /* プルダウンオプション */
+    .stSelectbox > div > div > div > div > div {
+        color: #111827 !important;
+        background-color: #FFFFFF !important;
+    }
+    /* 選択後の値 */
+    .stSelectbox [data-baseweb="select"] > div {
+        color: #111827 !important;
+    }
+    /* ファイルアップローダー - 記入欄とわかるデザイン */
+    .stFileUploader > div {
+        background-color: #F9FAFB !important;
+        border: 2px dashed #9CA3AF !important;
         border-radius: 6px !important;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.05) !important;
     }
     .stFileUploader > div > div {
-        background-color: #FFFFFF !important;
-        color: #1F2937 !important;
+        background-color: transparent !important;
+        color: #111827 !important;
     }
     .stFileUploader label {
-        color: #1F2937 !important;
+        color: #111827 !important;
         font-weight: 500 !important;
     }
     .stFileUploader svg {
-        fill: #6B7280 !important;
-        color: #6B7280 !important;
+        fill: #374151 !important;
+        color: #374151 !important;
     }
     .stFileUploader > div > div > div > div {
-        color: #1F2937 !important;
+        color: #111827 !important;
     }
     .stFileUploader > div > div > small {
-        color: #6B7280 !important;
+        color: #374151 !important;
+    }
+    .stFileUploader [data-testid="stFileUploaderDropzone"] {
+        background-color: #F9FAFB !important;
+    }
+    .stFileUploader [data-testid="stFileUploaderDropzone"] > div {
+        color: #111827 !important;
+    }
+    /* Drag and drop テキスト */
+    .stFileUploader [data-testid="stFileUploaderDropzone"] span {
+        color: #111827 !important;
+        font-weight: 500 !important;
     }
     /* ボタン */
     .stButton > button {
