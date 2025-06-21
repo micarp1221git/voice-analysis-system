@@ -106,15 +106,20 @@ class VoiceAnalyzer:
         metrics['rhythm'] = rhythm_score
         
         # 5. 表現力（ダイナミクスレンジ）
-        db = librosa.amplitude_to_db(np.abs(librosa.stft(y)), ref=np.max)
-        # 無音部分を除外してダイナミクスレンジを計算
-        valid_db = db[db > -60]  # -60dB以上の音のみ
-        if len(valid_db) > 0:
-            dynamic_range = np.max(valid_db) - np.min(valid_db)
-            # 適切にスケーリング（0-30dBを0-99点に）
-            expression_score = min(99, max(10, int(dynamic_range * 3.3)))
+        # RMS値の変動を使ってより安定した表現力を計算
+        frame_length = 2048
+        hop_length = 512
+        rms_frames = librosa.feature.rms(y=y, frame_length=frame_length, hop_length=hop_length)[0]
+        rms_db = librosa.amplitude_to_db(rms_frames, ref=np.max)
+        
+        # 有効なフレーム（無音でない部分）でダイナミクスレンジを計算
+        valid_rms = rms_db[rms_db > -40]  # -40dB以上のフレーム
+        if len(valid_rms) > 5:  # 最低5フレーム必要
+            dynamic_range = np.max(valid_rms) - np.min(valid_rms)
+            # 0-20dBの範囲を20-90点にマッピング
+            expression_score = min(90, max(20, int(20 + dynamic_range * 3.5)))
         else:
-            expression_score = 10
+            expression_score = 30  # デフォルト値
         metrics['expression'] = expression_score
         
         # 6. 声の響き（スペクトルロールオフ）
@@ -386,6 +391,21 @@ class VoiceAnalyzer:
 
 def main():
     st.set_page_config(page_title="AI音声分析", page_icon="🎤", layout="wide")
+    
+    # 背景を白に固定
+    st.markdown("""
+    <style>
+    .stApp {
+        background-color: white !important;
+    }
+    .main .block-container {
+        background-color: white !important;
+    }
+    [data-testid="stAppViewContainer"] {
+        background-color: white !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
     
     st.title("🎤 AI音声分析システム")
     st.markdown("""
