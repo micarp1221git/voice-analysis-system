@@ -29,8 +29,12 @@ class VoiceAnalyzer:
             tmp_file_path = tmp_file.name
         
         try:
-            # librosraで音声を読み込み
-            y, sr = librosa.load(tmp_file_path, sr=self.sample_rate, duration=30)
+            # より安定した音声読み込み
+            import warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                y, sr = librosa.load(tmp_file_path, sr=self.sample_rate, duration=30)
+            
             duration = len(y) / sr
             
             # 30秒以下の音声の場合はエラー
