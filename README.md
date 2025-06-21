@@ -163,4 +163,4 @@ MIT License
 
 ---
 
-⭐ このプロジェクトが役に立ったらスターをお願いします！
+⭐ このプロジェクトが役に立ったらスターをお願いします！# Note: The main application is in app.py (copied from streamlit_app.py due to path constraints)
