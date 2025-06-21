@@ -115,10 +115,10 @@ class VoiceAnalyzer:
         non_silent = rms_frames[rms_frames > np.max(rms_frames) * 0.1]
         
         if len(non_silent) > 10:
-            # 変動の標準偏差を計算（表現力 = 音量変化の豊かさ）
+            # 変動係数を計算（表現力 = 音量変化の豊かさ）
             variation = np.std(non_silent) / np.mean(non_silent)
-            # 0-1の範囲を30-85点にマッピング
-            expression_score = min(85, max(30, int(30 + variation * 550)))
+            # 0-1の範囲を30-95点にマッピング
+            expression_score = min(95, max(30, int(30 + variation * 650)))
         else:
             expression_score = 40  # 短すぎる場合のデフォルト
         metrics['expression'] = expression_score
@@ -471,6 +471,16 @@ def main():
         color: #1F2937 !important;
         font-weight: 500 !important;
     }
+    .stFileUploader svg {
+        fill: #6B7280 !important;
+        color: #6B7280 !important;
+    }
+    .stFileUploader > div > div > div > div {
+        color: #1F2937 !important;
+    }
+    .stFileUploader > div > div > small {
+        color: #6B7280 !important;
+    }
     /* ボタン */
     .stButton > button {
         background-color: #3B82F6 !important;
@@ -660,9 +670,12 @@ def main():
                     **4. リズム・テンポ**: 音声のビート検出でテンポを分析
                     - 話し方のリズム感や歌のテンポ感を評価
                     
-                    **5. 表現力**: 音量変化の変動係数を計算
-                    - RMSフレームの標準偏差÷平均で、声の表現豊かさを数値化
-                    - 一定の音量 = 低い表現力、音量変化が豊か = 高い表現力
+                    **5. 表現力**: 音量変化の変動係数を計算（30-95点）
+                    - **標準偏差**: 音量フレーム間のばらつき度合い
+                    - **平均**: 全音量フレームの平均値  
+                    - **変動係数 = 標準偏差÷平均**: 音量変化の相対的な豊かさ
+                    - 一定の音量（変動係数が小さい）= 低い表現力
+                    - 抑揚豊かな音量変化（変動係数が大きい）= 高い表現力
                     
                     **6. 声の響き**: スペクトルロールオフ（音の丸み）を測定
                     - 高周波の減衰具合で声の響きの豊かさを判定
