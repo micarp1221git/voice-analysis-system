@@ -430,19 +430,46 @@ def main():
     }
     /* 入力フィールド */
     .stTextInput > div > div > input {
+        background-color: #FFFFFF !important;
         border: 2px solid #D1D5DB !important;
         border-radius: 6px !important;
-        color: #374151 !important;
+        color: #1F2937 !important;
+        font-weight: 500 !important;
     }
     .stTextInput > div > div > input:focus {
+        background-color: #FFFFFF !important;
         border-color: #3B82F6 !important;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+        color: #1F2937 !important;
+    }
+    .stTextInput > div > div > input::placeholder {
+        color: #9CA3AF !important;
     }
     /* セレクトボックス */
     .stSelectbox > div > div > div {
+        background-color: #FFFFFF !important;
         border: 2px solid #D1D5DB !important;
         border-radius: 6px !important;
-        color: #374151 !important;
+        color: #1F2937 !important;
+        font-weight: 500 !important;
+    }
+    .stSelectbox > div > div > div > div {
+        background-color: #FFFFFF !important;
+        color: #1F2937 !important;
+    }
+    /* ファイルアップローダー */
+    .stFileUploader > div {
+        background-color: #FFFFFF !important;
+        border: 2px dashed #D1D5DB !important;
+        border-radius: 6px !important;
+    }
+    .stFileUploader > div > div {
+        background-color: #FFFFFF !important;
+        color: #1F2937 !important;
+    }
+    .stFileUploader label {
+        color: #1F2937 !important;
+        font-weight: 500 !important;
     }
     /* ボタン */
     .stButton > button {
@@ -615,6 +642,31 @@ def main():
                     st.markdown("**スペクトログラム**")
                     spectrogram_fig = analyzer.create_spectrogram(y_trimmed, sr)
                     st.pyplot(spectrogram_fig)
+                
+                # 分析方法の説明
+                with st.expander("🔬 各指標の分析方法"):
+                    st.markdown("""
+                    **📊 6つの指標について**
+                    
+                    **1. 声の大きさ**: 音声のRMS（実効値）エネルギーを測定
+                    - 無音部分を除外して、実際の発声音量を評価
+                    
+                    **2. 声の明瞭度**: スペクトル重心（音の明るさ）を分析
+                    - 高周波成分の豊富さで滑舌の良さを判定
+                    
+                    **3. 音程の安定性**: ピッチ変化の安定性を測定
+                    - 音程のブレ具合を標準偏差で計算
+                    
+                    **4. リズム・テンポ**: 音声のビート検出でテンポを分析
+                    - 話し方のリズム感や歌のテンポ感を評価
+                    
+                    **5. 表現力**: 音量変化の変動係数を計算
+                    - RMSフレームの標準偏差÷平均で、声の表現豊かさを数値化
+                    - 一定の音量 = 低い表現力、音量変化が豊か = 高い表現力
+                    
+                    **6. 声の響き**: スペクトルロールオフ（音の丸み）を測定
+                    - 高周波の減衰具合で声の響きの豊かさを判定
+                    """)
                 
                 # 結果画像の生成とシェア機能
                 try:
