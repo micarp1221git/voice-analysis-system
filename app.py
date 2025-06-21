@@ -260,7 +260,7 @@ class VoiceAnalyzer:
             hints.append("・声の響きを良くするため、共鳴腔を意識した発声練習をしましょう")
         
         if hints:
-            diagnosis += "\n\n【改善のヒント】\n" + "\n".join(hints)
+            diagnosis += "\n\n【改善のヒント】\n\n" + "\n\n".join(hints)
         
         return diagnosis, total_score, level, level_desc
     
@@ -509,6 +509,10 @@ def main():
                 
             except Exception as e:
                 error_msg = str(e)
+                # 分析が完了している場合はエラーを表示しない
+                if st.session_state.analysis_complete:
+                    return
+                    
                 if "M4Aファイルは現在サポートされていません" in error_msg:
                     st.error("🚫 M4Aファイルは対応していません。WAVまたはMP3ファイルをご利用ください。")
                 elif "音声ファイル形式" in error_msg and "がサポートされていません" in error_msg:
