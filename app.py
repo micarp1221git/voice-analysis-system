@@ -462,27 +462,32 @@ def main():
                 # 結果表示
                 st.success("分析が完了しました！")
                 
-                # メトリクス表示
-                st.subheader("📊 分析結果")
+                # 総合評価（星付き）
+                st.subheader("⭐ 総合評価")
+                star_rating = min(5, max(1, round(total_score / 120)))
+                stars = "⭐" * star_rating + "☆" * (5 - star_rating)
                 
-                col1, col2, col3 = st.columns(3)
+                col1, col2 = st.columns([2, 1])
                 with col1:
-                    st.metric("総合スコア", f"{total_score}/594点")
+                    st.markdown(f"### {stars} {total_score}/594点 ({level} - {level_desc})")
                 with col2:
-                    st.metric("評価レベル", level)
-                with col3:
-                    st.metric("レベル説明", level_desc)
+                    st.markdown(f"**{formatted_name}**")
                 
                 # レーダーチャート
                 radar_fig = analyzer.create_radar_chart(metrics, f"{formatted_name}の音声分析結果")
                 st.plotly_chart(radar_fig, use_container_width=True)
                 
-                # 詳細スコア
-                st.subheader("📈 詳細スコア")
-                cols = st.columns(3)
+                # 詳細評価
+                st.subheader("📈 評価の詳細")
+                st.markdown("各項目を点数で評価しています")
+                
+                cols = st.columns(2)
                 for i, (key, name_jp) in enumerate(analyzer.metrics_names.items()):
-                    with cols[i % 3]:
-                        st.metric(name_jp, f"{metrics[key]}点")
+                    with cols[i % 2]:
+                        score = metrics[key]
+                        # プログレスバー風の表示
+                        progress_bar = "█" * (score // 10) + "░" * (10 - score // 10)
+                        st.markdown(f"**{name_jp}**: {score}点  \n`{progress_bar}`")
                 
                 # AI診断結果
                 st.subheader("🤖 AI診断")
@@ -514,46 +519,24 @@ def main():
                     
                 st.session_state.analysis_complete = True
                 
-                # スクショ用の分析結果エリア
+                # シェア機能
                 st.markdown("---")
-                st.markdown("### 📸 分析結果をシェア")
-                
-                # スクショしやすい16:9レイアウトのコンテナ
-                with st.container():
-                    st.markdown("""
-                    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; margin: 10px 0;">
-                    """, unsafe_allow_html=True)
-                    
-                    # 結果サマリー（スクショ用）
-                    col1, col2 = st.columns([1, 1])
-                    with col1:
-                        st.markdown(f"**{formatted_name}の音声診断結果**")
-                        st.markdown(f"**総合スコア**: {total_score}/594点 ({level})")
-                        
-                        # 上位3項目を表示
-                        sorted_metrics = sorted(metrics.items(), key=lambda x: x[1], reverse=True)
-                        st.markdown("**優秀な項目**:")
-                        for i, (key, value) in enumerate(sorted_metrics[:3]):
-                            st.markdown(f"• {analyzer.metrics_names[key]}: {value}点")
-                    
-                    with col2:
-                        # 小さめのレーダーチャート
-                        radar_fig_small = analyzer.create_radar_chart(metrics, "")
-                        radar_fig_small.update_layout(height=300, showlegend=False)
-                        st.plotly_chart(radar_fig_small, use_container_width=True)
-                    
-                    st.markdown("</div>", unsafe_allow_html=True)
-                
-                # シェアボタン
-                col1, col2, col3 = st.columns([1, 2, 1])
+                col1, col2, col3 = st.columns([1, 1, 1])
                 with col2:
                     if st.session_state.result_image:
+                        if st.button("📤 Xでシェアする", use_container_width=True):
+                            # Xシェア用のテキスト
+                            share_text = f"AI音声診断の結果: {stars} {total_score}点！\\n\\n#音声診断 #AIアナリシス"
+                            x_url = f"https://twitter.com/intent/tweet?text={share_text}"
+                            st.markdown(f'<meta http-equiv="refresh" content="0; url={x_url}">', unsafe_allow_html=True)
+                            st.success("Xに移動しています...")
+                        
                         st.download_button(
-                            label="📱 結果画像をダウンロード",
+                            label="📱 画像をダウンロード",
                             data=st.session_state.result_image,
                             file_name=f"voice_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg",
                             mime="image/jpeg",
-                            help="SNSでシェアできる画像として保存します",
+                            help="画像として保存",
                             use_container_width=True
                         )
                 
@@ -575,24 +558,14 @@ def main():
     if st.session_state.analysis_complete:
         st.markdown("---")
         
-        # CTAボタンを大きく目立たせる
-        st.markdown("""
-        <div style="background-color: #f0f8ff; padding: 30px; border-radius: 10px; text-align: center;">
-            <h2 style="color: #1f77b4;">🎯 プロの指導で声を変えませんか？</h2>
-            <p style="font-size: 18px; margin: 20px 0;">
-                AI分析の結果を基に、プロのボイストレーナーがあなたに最適なトレーニングプランを提案します。
-            </p>
-            <p style="font-size: 24px; font-weight: bold; color: #ff6b6b; margin: 20px 0;">
-                初回カウンセリング ¥9,800（通常¥15,000）
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
+        # 控えめなCTA
+        st.markdown("### 💡 さらに上達したい方へ")
+        st.markdown("プロのボイストレーナーによる個別指導で、より効果的に声を改善できます。")
         
-        col1, col2, col3 = st.columns([1, 2, 1])
+        col1, col2, col3 = st.columns([1, 1, 1])
         with col2:
-            if st.button("📞 無料相談を予約する", type="primary", use_container_width=True):
-                st.balloons()
-                st.success("予約フォームに移動します...")
+            if st.button("詳細を見る", use_container_width=True):
+                st.info("初回カウンセリング ¥9,800で、あなたに最適なトレーニングプランを提案します。")
                 # ここに予約フォームへのリンクや処理を追加
         
 
