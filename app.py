@@ -498,7 +498,9 @@ def main():
                 st.session_state.analysis_complete = True
                 
             except Exception as e:
+                import traceback
                 st.error(f"エラーが発生しました: {str(e)}")
+                st.error(f"詳細: {traceback.format_exc()}")
                 return
     
     # ビジネスCTAセクション
