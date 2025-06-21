@@ -521,16 +521,19 @@ def main():
                 
                 # シェア機能
                 st.markdown("---")
-                col1, col2, col3 = st.columns([1, 1, 1])
+                st.markdown("### 📤 結果をシェア")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("🐦 Xでシェアする", use_container_width=True):
+                        # Xシェア用のテキスト
+                        share_text = f"AI音声診断の結果: {stars} {total_score}点！\\n\\n#音声診断 #AIアナリシス"
+                        x_url = f"https://twitter.com/intent/tweet?text={share_text}"
+                        st.markdown(f'<meta http-equiv="refresh" content="0; url={x_url}">', unsafe_allow_html=True)
+                        st.success("Xに移動しています...")
+                
                 with col2:
                     if st.session_state.result_image:
-                        if st.button("📤 Xでシェアする", use_container_width=True):
-                            # Xシェア用のテキスト
-                            share_text = f"AI音声診断の結果: {stars} {total_score}点！\\n\\n#音声診断 #AIアナリシス"
-                            x_url = f"https://twitter.com/intent/tweet?text={share_text}"
-                            st.markdown(f'<meta http-equiv="refresh" content="0; url={x_url}">', unsafe_allow_html=True)
-                            st.success("Xに移動しています...")
-                        
                         st.download_button(
                             label="📱 画像をダウンロード",
                             data=st.session_state.result_image,
@@ -539,6 +542,8 @@ def main():
                             help="画像として保存",
                             use_container_width=True
                         )
+                    else:
+                        st.button("📱 画像をダウンロード", disabled=True, use_container_width=True, help="画像生成中...")
                 
             except Exception as e:
                 error_msg = str(e)
@@ -558,14 +563,22 @@ def main():
     if st.session_state.analysis_complete:
         st.markdown("---")
         
-        # 控えめなCTA
-        st.markdown("### 💡 さらに上達したい方へ")
-        st.markdown("プロのボイストレーナーによる個別指導で、より効果的に声を改善できます。")
+        # 適度なCTA
+        st.markdown("""
+        <div style="background-color: #f8f9ff; padding: 20px; border-radius: 8px; border-left: 4px solid #4CAF50;">
+            <h3 style="color: #2E7D32; margin-top: 0;">🎯 分析結果を活かして、さらに上達しませんか？</h3>
+            <p style="margin: 15px 0; color: #333;">
+                この診断結果をもとに、プロのボイストレーナーがあなたに最適な改善プランを提案します。<br>
+                <strong>初回カウンセリング ¥9,800</strong>（通常 ¥15,000）
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
         
-        col1, col2, col3 = st.columns([1, 1, 1])
+        col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            if st.button("詳細を見る", use_container_width=True):
-                st.info("初回カウンセリング ¥9,800で、あなたに最適なトレーニングプランを提案します。")
+            if st.button("🎤 プロ指導を申し込む", type="primary", use_container_width=True):
+                st.balloons()
+                st.success("お申し込みありがとうございます！専門スタッフからご連絡いたします。")
                 # ここに予約フォームへのリンクや処理を追加
         
 
