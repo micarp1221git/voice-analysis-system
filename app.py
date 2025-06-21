@@ -420,8 +420,12 @@ def main():
         audio_file = st.file_uploader(
             "音声ファイルをアップロード",
             type=['wav', 'mp3'],
-            help="30秒以上のWAVまたはMP3ファイルが必要です（M4A、FLACは現在未対応）"
+            help="30秒以上のWAVまたはMP3ファイルが必要です"
         )
+        
+        # ファイル形式の注意書き
+        st.info("📌 **対応ファイル形式**: WAV、MP3のみ  \n"
+               "M4A、FLAC等をお持ちの場合は、音声変換アプリでWAVまたはMP3に変換してからご利用ください。")
         
         submitted = st.form_submit_button("分析開始", type="primary", use_container_width=True)
     
@@ -507,9 +511,19 @@ def main():
                 st.session_state.analysis_complete = True
                 
             except Exception as e:
-                import traceback
-                st.error(f"エラーが発生しました: {str(e)}")
-                st.error(f"詳細: {traceback.format_exc()}")
+                error_msg = str(e)
+                if "M4Aファイルは現在サポートされていません" in error_msg:
+                    st.error("🚫 M4Aファイルは対応していません。WAVまたはMP3ファイルをご利用ください。")
+                elif "音声ファイル形式" in error_msg and "がサポートされていません" in error_msg:
+                    st.error("🚫 このファイル形式は対応していません。WAVまたはMP3ファイルをご利用ください。")
+                elif "30秒以上である必要があります" in error_msg:
+                    st.error("⏱️ 音声が短すぎます。30秒以上の音声ファイルをご利用ください。")
+                elif "音声ファイルの読み込みエラー" in error_msg:
+                    st.error("📁 音声ファイルが壊れているか、読み込めません。別のファイルをお試しください。")
+                else:
+                    st.error("❌ 音声の処理中にエラーが発生しました。ファイル形式や内容をご確認ください。")
+                    # 開発用の詳細エラー（本番では非表示）
+                    # st.error(f"詳細: {error_msg}")
                 return
     
     # ビジネスCTAセクション
