@@ -502,19 +502,63 @@ def main():
                     spectrogram_fig = analyzer.create_spectrogram(y_trimmed, sr)
                     st.pyplot(spectrogram_fig)
                 
-                # 結果画像の生成
-                result_image = analyzer.create_result_image(
-                    formatted_name, metrics, diagnosis, total_score, level, radar_fig
-                )
-                st.session_state.result_image = result_image
+                # 結果画像の生成とシェア機能
+                try:
+                    result_image = analyzer.create_result_image(
+                        formatted_name, metrics, diagnosis, total_score, level, radar_fig
+                    )
+                    st.session_state.result_image = result_image
+                except:
+                    # 画像生成エラーは無視
+                    st.session_state.result_image = None
+                    
                 st.session_state.analysis_complete = True
+                
+                # スクショ用の分析結果エリア
+                st.markdown("---")
+                st.markdown("### 📸 分析結果をシェア")
+                
+                # スクショしやすい16:9レイアウトのコンテナ
+                with st.container():
+                    st.markdown("""
+                    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; margin: 10px 0;">
+                    """, unsafe_allow_html=True)
+                    
+                    # 結果サマリー（スクショ用）
+                    col1, col2 = st.columns([1, 1])
+                    with col1:
+                        st.markdown(f"**{formatted_name}の音声診断結果**")
+                        st.markdown(f"**総合スコア**: {total_score}/594点 ({level})")
+                        
+                        # 上位3項目を表示
+                        sorted_metrics = sorted(metrics.items(), key=lambda x: x[1], reverse=True)
+                        st.markdown("**優秀な項目**:")
+                        for i, (key, value) in enumerate(sorted_metrics[:3]):
+                            st.markdown(f"• {analyzer.metrics_names[key]}: {value}点")
+                    
+                    with col2:
+                        # 小さめのレーダーチャート
+                        radar_fig_small = analyzer.create_radar_chart(metrics, "")
+                        radar_fig_small.update_layout(height=300, showlegend=False)
+                        st.plotly_chart(radar_fig_small, use_container_width=True)
+                    
+                    st.markdown("</div>", unsafe_allow_html=True)
+                
+                # シェアボタン
+                col1, col2, col3 = st.columns([1, 2, 1])
+                with col2:
+                    if st.session_state.result_image:
+                        st.download_button(
+                            label="📱 結果画像をダウンロード",
+                            data=st.session_state.result_image,
+                            file_name=f"voice_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg",
+                            mime="image/jpeg",
+                            help="SNSでシェアできる画像として保存します",
+                            use_container_width=True
+                        )
                 
             except Exception as e:
                 error_msg = str(e)
-                # 分析が完了している場合はエラーを表示しない
-                if st.session_state.analysis_complete:
-                    return
-                    
                 if "M4Aファイルは現在サポートされていません" in error_msg:
                     st.error("🚫 M4Aファイルは対応していません。WAVまたはMP3ファイルをご利用ください。")
                 elif "音声ファイル形式" in error_msg and "がサポートされていません" in error_msg:
@@ -525,8 +569,6 @@ def main():
                     st.error("📁 音声ファイルが壊れているか、読み込めません。別のファイルをお試しください。")
                 else:
                     st.error("❌ 音声の処理中にエラーが発生しました。ファイル形式や内容をご確認ください。")
-                    # 開発用の詳細エラー（本番では非表示）
-                    # st.error(f"詳細: {error_msg}")
                 return
     
     # ビジネスCTAセクション
@@ -553,20 +595,6 @@ def main():
                 st.success("予約フォームに移動します...")
                 # ここに予約フォームへのリンクや処理を追加
         
-        # 画像ダウンロードボタンは控えめに配置
-        st.markdown("---")
-        st.markdown("### 📸 分析結果をシェア")
-        
-        if st.session_state.result_image:
-            col1, col2, col3 = st.columns([2, 1, 2])
-            with col2:
-                st.download_button(
-                    label="画像として保存",
-                    data=st.session_state.result_image,
-                    file_name=f"voice_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg",
-                    mime="image/jpeg",
-                    help="SNSでシェアできる画像として保存します"
-                )
 
 if __name__ == "__main__":
     main()
