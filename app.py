@@ -105,21 +105,22 @@ class VoiceAnalyzer:
             rhythm_score = min(99, int(tempo / 2))
         metrics['rhythm'] = rhythm_score
         
-        # 5. 表現力（ダイナミクスレンジ）
-        # RMS値の変動を使ってより安定した表現力を計算
-        frame_length = 2048
-        hop_length = 512
+        # 5. 表現力（音量変化の標準偏差）
+        # 短時間窓でRMS値を計算し、その変動を見る
+        frame_length = 1024
+        hop_length = 256
         rms_frames = librosa.feature.rms(y=y, frame_length=frame_length, hop_length=hop_length)[0]
-        rms_db = librosa.amplitude_to_db(rms_frames, ref=np.max)
         
-        # 有効なフレーム（無音でない部分）でダイナミクスレンジを計算
-        valid_rms = rms_db[rms_db > -40]  # -40dB以上のフレーム
-        if len(valid_rms) > 5:  # 最低5フレーム必要
-            dynamic_range = np.max(valid_rms) - np.min(valid_rms)
-            # 0-20dBの範囲を20-90点にマッピング
-            expression_score = min(90, max(20, int(20 + dynamic_range * 3.5)))
+        # 無音でないフレームのみ抽出
+        non_silent = rms_frames[rms_frames > np.max(rms_frames) * 0.1]
+        
+        if len(non_silent) > 10:
+            # 変動の標準偏差を計算（表現力 = 音量変化の豊かさ）
+            variation = np.std(non_silent) / np.mean(non_silent)
+            # 0-1の範囲を30-85点にマッピング
+            expression_score = min(85, max(30, int(30 + variation * 550)))
         else:
-            expression_score = 30  # デフォルト値
+            expression_score = 40  # 短すぎる場合のデフォルト
         metrics['expression'] = expression_score
         
         # 6. 声の響き（スペクトルロールオフ）
@@ -392,17 +393,99 @@ class VoiceAnalyzer:
 def main():
     st.set_page_config(page_title="AI音声分析", page_icon="🎤", layout="wide")
     
-    # 背景を白に固定
+    # プロフェッショナルな白背景デザイン
     st.markdown("""
     <style>
     .stApp {
-        background-color: white !important;
+        background-color: #FFFFFF !important;
+        color: #2C3E50 !important;
     }
     .main .block-container {
-        background-color: white !important;
+        background-color: #FFFFFF !important;
     }
     [data-testid="stAppViewContainer"] {
-        background-color: white !important;
+        background-color: #FFFFFF !important;
+    }
+    /* タイトル */
+    h1 {
+        color: #1E3A8A !important;
+        font-weight: 700 !important;
+    }
+    /* サブヘッダー */
+    h2, h3 {
+        color: #1F2937 !important;
+        font-weight: 600 !important;
+    }
+    /* メトリクスカード */
+    [data-testid="metric-container"] {
+        background-color: #F8FAFC !important;
+        border: 1px solid #E2E8F0 !important;
+        border-radius: 8px !important;
+        padding: 1rem !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+    }
+    /* プログレスバー */
+    .stProgress > div > div > div {
+        background-color: #3B82F6 !important;
+    }
+    /* 入力フィールド */
+    .stTextInput > div > div > input {
+        border: 2px solid #D1D5DB !important;
+        border-radius: 6px !important;
+        color: #374151 !important;
+    }
+    .stTextInput > div > div > input:focus {
+        border-color: #3B82F6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+    }
+    /* セレクトボックス */
+    .stSelectbox > div > div > div {
+        border: 2px solid #D1D5DB !important;
+        border-radius: 6px !important;
+        color: #374151 !important;
+    }
+    /* ボタン */
+    .stButton > button {
+        background-color: #3B82F6 !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 6px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    }
+    .stButton > button:hover {
+        background-color: #2563EB !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
+    /* 情報ボックス */
+    .stInfo {
+        background-color: #EFF6FF !important;
+        border-left: 4px solid #3B82F6 !important;
+        color: #1E40AF !important;
+    }
+    /* 成功メッセージ */
+    .stSuccess {
+        background-color: #F0FDF4 !important;
+        border-left: 4px solid #10B981 !important;
+        color: #047857 !important;
+    }
+    /* エラーメッセージ */
+    .stError {
+        background-color: #FEF2F2 !important;
+        border-left: 4px solid #EF4444 !important;
+        color: #DC2626 !important;
+    }
+    /* サイドバー */
+    .css-1d391kg {
+        background-color: #F9FAFB !important;
+    }
+    /* 一般テキスト */
+    p, div, span {
+        color: #374151 !important;
+    }
+    /* 強調テキスト */
+    strong, b {
+        color: #1F2937 !important;
     }
     </style>
     """, unsafe_allow_html=True)
