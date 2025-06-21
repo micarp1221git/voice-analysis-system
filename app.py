@@ -421,8 +421,8 @@ def main():
         )
         
         # ファイル形式の注意書き
-        st.info("📌 **対応ファイル形式**: WAV、MP3のみ  \n"
-               "M4A、FLAC等をお持ちの場合は、音声変換アプリでWAVまたはMP3に変換してからご利用ください。")
+        st.markdown("📌 **対応ファイル形式**: WAV、MP3のみ  \n"
+                   "M4A、FLAC等をお持ちの場合は、音声変換アプリでWAVまたはMP3に変換してからご利用ください。")
         
         submitted = st.form_submit_button("分析開始", type="primary", use_container_width=True)
     
