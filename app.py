@@ -107,8 +107,14 @@ class VoiceAnalyzer:
         
         # 5. 表現力（ダイナミクスレンジ）
         db = librosa.amplitude_to_db(np.abs(librosa.stft(y)), ref=np.max)
-        dynamic_range = np.max(db) - np.mean(db[db > -80])
-        expression_score = min(99, int(dynamic_range * 2))
+        # 無音部分を除外してダイナミクスレンジを計算
+        valid_db = db[db > -60]  # -60dB以上の音のみ
+        if len(valid_db) > 0:
+            dynamic_range = np.max(valid_db) - np.min(valid_db)
+            # 適切にスケーリング（0-30dBを0-99点に）
+            expression_score = min(99, max(10, int(dynamic_range * 3.3)))
+        else:
+            expression_score = 10
         metrics['expression'] = expression_score
         
         # 6. 声の響き（スペクトルロールオフ）
