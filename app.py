@@ -417,11 +417,12 @@ def main():
         audio_file = st.file_uploader(
             "音声ファイルをアップロード",
             type=['wav', 'mp3'],
-            help="WAVまたはMP3ファイル（30秒を超える場合は自動で30秒にカット）"
+            help="任意の長さのWAVまたはMP3ファイル（30秒を超える場合は冒頭30秒を分析）"
         )
         
         # ファイル形式の注意書き
         st.markdown("📌 **対応ファイル形式**: WAV、MP3のみ  \n"
+                   "💡 **長さについて**: どんな長さでもOK！30秒を超える場合は冒頭30秒を自動で分析します  \n"
                    "M4A、FLAC等をお持ちの場合は、音声変換アプリでWAVまたはMP3に変換してからご利用ください。")
         
         submitted = st.form_submit_button("分析開始", type="primary", use_container_width=True)
