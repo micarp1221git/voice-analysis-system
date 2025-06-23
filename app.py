@@ -746,12 +746,44 @@ def main():
                 
                 col1, col2 = st.columns(2)
                 with col1:
-                    if st.button("🐦 Xでシェアする", use_container_width=True):
-                        # Xシェア用のテキスト
-                        share_text = f"AI音声診断の結果: {stars} {total_score}点！\\n\\n#音声診断 #AIアナリシス"
-                        x_url = f"https://twitter.com/intent/tweet?text={share_text}"
-                        st.markdown(f'<meta http-equiv="refresh" content="0; url={x_url}">', unsafe_allow_html=True)
-                        st.success("Xに移動しています...")
+                    # URLエンコードのためにインポート
+                    import urllib.parse
+                    
+                    # Xシェア用のテキスト
+                    share_text = f"AI音声診断の結果: {stars} {total_score}点！\n\n"
+                    share_text += f"私の声の特徴:\n"
+                    
+                    # 上位2項目を取得
+                    sorted_metrics = sorted(metrics.items(), key=lambda x: x[1], reverse=True)
+                    for i, (key, value) in enumerate(sorted_metrics[:2]):
+                        share_text += f"✅ {analyzer.metrics_names[key]}: {value}点\n"
+                    
+                    share_text += f"\n#音声診断 #AI分析 #ボイストレーニング"
+                    
+                    # URL用のパラメータ
+                    params = {
+                        'text': share_text,
+                        'url': 'https://micarp1221git-voice-analysis-system.streamlit.app'  # 実際のアプリURL
+                    }
+                    
+                    # URLエンコード
+                    encoded_params = urllib.parse.urlencode(params)
+                    x_share_url = f"https://twitter.com/intent/tweet?{encoded_params}"
+                    
+                    # リンクボタンとして実装
+                    st.markdown(f'''
+                    <a href="{x_share_url}" target="_blank" rel="noopener noreferrer" style="
+                        display: inline-block;
+                        width: 100%;
+                        padding: 0.5rem;
+                        background-color: #1DA1F2;
+                        color: white;
+                        text-align: center;
+                        text-decoration: none;
+                        border-radius: 4px;
+                        font-weight: 600;
+                    ">🐦 Xでシェアする</a>
+                    ''', unsafe_allow_html=True)
                 
                 with col2:
                     if st.session_state.result_image:
