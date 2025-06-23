@@ -541,6 +541,18 @@ def main():
         background-color: #2563EB !important;
         box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
     }
+    /* プライマリボタン（分析開始）を目立たせる */
+    .stButton > button[kind="primary"] {
+        background-color: #1E3A8A !important;
+        font-size: 1.1rem !important;
+        padding: 0.75rem 1.5rem !important;
+        box-shadow: 0 4px 6px rgba(30, 58, 138, 0.3) !important;
+    }
+    .stButton > button[kind="primary"]:hover {
+        background-color: #1E40AF !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 8px rgba(30, 58, 138, 0.4) !important;
+    }
     /* 情報ボックス */
     .stInfo {
         background-color: #EFF6FF !important;
@@ -700,33 +712,6 @@ def main():
                     spectrogram_fig = analyzer.create_spectrogram(y_trimmed, sr)
                     st.pyplot(spectrogram_fig)
                 
-                # 分析方法の説明
-                with st.expander("🔬 各指標の分析方法"):
-                    st.markdown("""
-                    **📊 6つの指標について**
-                    
-                    **1. 声の大きさ**: 音声のRMS（実効値）エネルギーを測定
-                    - 無音部分を除外して、実際の発声音量を評価
-                    
-                    **2. 声の明瞭度**: スペクトル重心（音の明るさ）を分析
-                    - 高周波成分の豊富さで滑舌の良さを判定
-                    
-                    **3. 音程の安定性**: ピッチ変化の安定性を測定
-                    - 音程のブレ具合を標準偏差で計算
-                    
-                    **4. リズム・テンポ**: 音声のビート検出でテンポを分析
-                    - 話し方のリズム感や歌のテンポ感を評価
-                    
-                    **5. 表現力**: 音量変化の変動係数を計算（30-95点）
-                    - **標準偏差**: 音量フレーム間のばらつき度合い
-                    - **平均**: 全音量フレームの平均値  
-                    - **変動係数 = 標準偏差÷平均**: 音量変化の相対的な豊かさ
-                    - 一定の音量（変動係数が小さい）= 低い表現力
-                    - 抑揚豊かな音量変化（変動係数が大きい）= 高い表現力
-                    
-                    **6. 声の響き**: スペクトルロールオフ（音の丸み）を測定
-                    - 高周波の減衰具合で声の響きの豊かさを判定
-                    """)
                 
                 # 結果画像の生成とシェア機能
                 try:
