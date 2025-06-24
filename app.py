@@ -313,17 +313,12 @@ class VoiceAnalyzer:
         }.get(level, "black")
         draw.text((width//2, y_pos), f"評価: {level} - {level_desc}", font=text_font, fill=level_color, anchor="mt")
         
-        # レーダーチャートを画像に変換して貼り付け
+        # レーダーチャートの代わりに各指標を視覚化
         y_pos += 80
-        radar_img_buf = io.BytesIO()
-        radar_fig.write_image(radar_img_buf, format='png', width=800, height=600)
-        radar_img_buf.seek(0)
-        radar_img = Image.open(radar_img_buf)
-        radar_img = radar_img.resize((800, 600), Image.Resampling.LANCZOS)
-        img.paste(radar_img, ((width - 800) // 2, y_pos))
+        # レーダーチャートエリアをスキップ
         
         # 各指標のスコア
-        y_pos += 650
+        y_pos += 100
         draw.text((width//2, y_pos), "詳細スコア", font=header_font, fill='black', anchor="mt")
         y_pos += 70
         
@@ -439,14 +434,22 @@ def main():
     # カスタムCSS - ボタンの色を深い青色に変更
     st.markdown("""
     <style>
-    /* プライマリボタン（分析開始）の色を変更 */
-    div[data-testid="stForm"] button[kind="primary"] {
+    /* Streamlitのプライマリボタンの色を変更 */
+    .stButton > button[type="submit"] {
         background-color: #1E3A8A !important;
         border-color: #1E3A8A !important;
+        color: white !important;
     }
-    div[data-testid="stForm"] button[kind="primary"]:hover {
+    .stButton > button[type="submit"]:hover {
         background-color: #1E40AF !important;
         border-color: #1E40AF !important;
+        color: white !important;
+    }
+    .stButton > button[type="submit"]:focus:not(:active) {
+        background-color: #1E3A8A !important;
+        border-color: #1E3A8A !important;
+        color: white !important;
+        box-shadow: none !important;
     }
     .stApp {
         background-color: #FFFFFF !important;
