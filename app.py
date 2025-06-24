@@ -747,23 +747,27 @@ def main():
                         'resonance': '響き'
                     }
                     
-                    # 上位3項目と下位1項目を取得
+                    # 上位2項目と最下位1項目を取得
                     sorted_metrics = sorted(metrics.items(), key=lambda x: x[1], reverse=True)
                     
-                    # 上位3項目
-                    for key, value in sorted_metrics[:3]:
+                    # 上位2項目
+                    for key, value in sorted_metrics[:2]:
                         bar_length = int(value / 10)  # 10文字のバーに変換
                         bar = "■" * bar_length + "□" * (10 - bar_length)
                         share_text += f"{metric_short_names[key]}:{value:>2}点 {bar}\n"
                     
-                    # 最も低い項目（改善点として）
+                    # 最も低い項目を3つ目に表示
                     lowest_key, lowest_value = sorted_metrics[-1]
-                    share_text += f"伸びしろ→{metric_short_names[lowest_key]}:{lowest_value}点\n"
+                    bar_length = int(lowest_value / 10)
+                    bar = "■" * bar_length + "□" * (10 - bar_length)
+                    share_text += f"{metric_short_names[lowest_key]}:{lowest_value:>2}点 {bar}\n"
                     
-                    # AI診断から最初の一文を抽出
-                    first_sentence = diagnosis.split("。")[0] + "。"
-                    if len(first_sentence) > 50:
-                        first_sentence = first_sentence[:47] + "..."
+                    # AI診断から最初の一文を抽出（必ず...で終わる）
+                    first_sentence = diagnosis.split("。")[0]
+                    if len(first_sentence) > 47:
+                        first_sentence = first_sentence[:44] + "…"
+                    else:
+                        first_sentence = first_sentence + "…"
                     
                     share_text += f"\n{first_sentence}\n\n"
                     share_text += "#声のAI分析"
