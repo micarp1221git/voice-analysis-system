@@ -105,22 +105,13 @@ class VoiceAnalyzer:
             rhythm_score = min(99, int(tempo / 2))
         metrics['rhythm'] = rhythm_score
         
-        # 5. 表現力（音量変化の標準偏差）
-        # 短時間窓でRMS値を計算し、その変動を見る
-        frame_length = 1024
-        hop_length = 256
-        rms_frames = librosa.feature.rms(y=y, frame_length=frame_length, hop_length=hop_length)[0]
-        
-        # 無音でないフレームのみ抽出
-        non_silent = rms_frames[rms_frames > np.max(rms_frames) * 0.1]
-        
-        if len(non_silent) > 10:
-            # 変動係数を計算（表現力 = 音量変化の豊かさ）
-            variation = np.std(non_silent) / np.mean(non_silent)
-            # 0-1の範囲を30-95点にマッピング
-            expression_score = min(95, max(30, int(30 + variation * 650)))
+        # 5. 表現力（変動係数）
+        rms_frames = librosa.feature.rms(y=y, frame_length=2048, hop_length=512)[0]
+        if np.mean(rms_frames) > 0:
+            cv = np.std(rms_frames) / np.mean(rms_frames)
+            expression_score = min(95, max(30, int(cv * 200)))
         else:
-            expression_score = 40  # 短すぎる場合のデフォルト
+            expression_score = 30
         metrics['expression'] = expression_score
         
         # 6. 声の響き（スペクトルロールオフ）
@@ -131,7 +122,7 @@ class VoiceAnalyzer:
         # 目的別の重み付け調整
         if purpose == "singing":
             metrics['pitch_stability'] = min(99, int(metrics['pitch_stability'] * 1.2))
-            metrics['expression'] = min(99, int(metrics['expression'] * 1.1))
+            metrics['expression'] = min(95, int(metrics['expression'] * 1.1))
         elif purpose == "speaking":
             metrics['clarity'] = min(99, int(metrics['clarity'] * 1.2))
             metrics['rhythm'] = min(99, int(metrics['rhythm'] * 1.1))
@@ -224,7 +215,7 @@ class VoiceAnalyzer:
             ],
             "B": [
                 f"{name}の声は良好な状態です。いくつかの改善点に取り組むことで、さらなる向上が期待できます。",
-                f"良い声をお持ちです！{name}の声にはまだ伸びしろがあり、練習次第で大きく向上するでしょう。",
+                f"良い声をお持ちです！{name}の声にはまだ成長の可能性があり、練習次第で大きく向上するでしょう。",
                 f"{name}の声は基本的な要素が整っています。特定の分野を重点的に練習することで飛躍的な成長が可能です。"
             ],
             "C": [
@@ -272,7 +263,7 @@ class VoiceAnalyzer:
             hints.append("・声の響きを良くするため、共鳴腔を意識した発声練習をしましょう")
         
         if hints:
-            diagnosis += "\n\n【改善のヒント】\n\n" + "\n\n".join(hints)
+            diagnosis += "\n\n【改善のヒント】\n" + "\n".join(hints)
         
         return diagnosis, total_score, level, level_desc
     
@@ -389,6 +380,58 @@ class VoiceAnalyzer:
         output.seek(0)
         
         return output
+
+    def create_share_text(self, name, metrics, diagnosis, total_score, level):
+        """X(旧Twitter)シェア用のテキストを生成"""
+        # メトリクスをスコア順にソート
+        sorted_metrics = sorted(metrics.items(), key=lambda x: x[1], reverse=True)
+        
+        # 表示順序：最上位、第2位、最下位、第3位
+        display_order = [
+            sorted_metrics[0],   # 最上位
+            sorted_metrics[1],   # 第2位
+            sorted_metrics[-1],  # 最下位
+            sorted_metrics[2]    # 第3位
+        ]
+        
+        # AI診断から最初の一文を抽出（句点。…の形）
+        first_sentence = diagnosis.split("。")[0] + "。"
+        if len(first_sentence) > 47:
+            first_sentence = first_sentence[:44] + "。"
+        first_sentence += "…"
+        
+        # 星とプログレスバーを作成
+        def create_progress_bar(score):
+            """スコアに基づいてプログレスバーと星を生成"""
+            stars = int(score / 20)  # 20点刻みで星を計算
+            star_text = "★" * stars + "☆" * (5 - stars)
+            
+            # プログレスバー（10ブロック）
+            filled = int(score / 10)
+            progress = "█" * filled + "░" * (10 - filled)
+            
+            return f"{star_text} {progress} {score}点"
+        
+        share_text = f"""🎤 音声分析診断結果
+📊 総合スコア {total_score}/594点 (レベル{level})
+
+{first_sentence}
+
+"""
+        
+        # 各項目を表示（改行で4項目に分割）
+        for i, (metric_key, score) in enumerate(display_order):
+            metric_name = self.metrics_names[metric_key]
+            progress_text = create_progress_bar(score)
+            share_text += f"{metric_name} {progress_text}\n"
+            
+            # 2項目ごとに改行を追加
+            if i == 1:
+                share_text += "\n"
+        
+        share_text += "\n#音声分析 #AI診断 #ボイストレーニング"
+        
+        return share_text
 
 def main():
     st.set_page_config(page_title="AI音声分析", page_icon="🎤", layout="wide")
@@ -557,39 +600,55 @@ def main():
     .stInfo {
         background-color: #EFF6FF !important;
         border-left: 4px solid #3B82F6 !important;
-        color: #1E40AF !important;
+        border-radius: 8px !important;
+        padding: 1rem !important;
     }
-    /* 成功メッセージ */
+    /* サクセスメッセージ */
     .stSuccess {
-        background-color: #F0FDF4 !important;
+        background-color: #ECFDF5 !important;
         border-left: 4px solid #10B981 !important;
-        color: #047857 !important;
+        border-radius: 8px !important;
+        padding: 1rem !important;
     }
     /* エラーメッセージ */
     .stError {
         background-color: #FEF2F2 !important;
         border-left: 4px solid #EF4444 !important;
-        color: #DC2626 !important;
+        border-radius: 8px !important;
+        padding: 1rem !important;
     }
-    /* サイドバー */
-    .css-1d391kg {
-        background-color: #F9FAFB !important;
+    /* エクスパンダー */
+    .streamlit-expanderHeader {
+        background-color: #F8FAFC !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
     }
-    /* 一般テキスト */
-    p, div, span {
-        color: #374151 !important;
+    /* タブ */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px !important;
     }
-    /* 強調テキスト */
-    strong, b {
-        color: #1F2937 !important;
+    .stTabs [data-baseweb="tab"] {
+        background-color: #F1F5F9 !important;
+        border-radius: 8px 8px 0 0 !important;
+        color: #475569 !important;
+        font-weight: 500 !important;
+    }
+    .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        background-color: #3B82F6 !important;
+        color: white !important;
+    }
+    /* 全体的なマージン調整 */
+    .block-container {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
     }
     </style>
     """, unsafe_allow_html=True)
     
     st.title("🎤 AI音声分析システム")
     st.markdown("""
-    あなたの声を分析し、改善点をAIが診断します。
-    音声ファイルをアップロードしてください（長いファイルは冒頭30秒を分析）。
+    あなたの声を6つの指標で科学的に分析し、改善点をAIが診断します。
+    30秒以内の音声ファイルをアップロードしてください。
     """)
     
     # セッション状態の初期化
@@ -597,6 +656,8 @@ def main():
         st.session_state.analysis_complete = False
     if 'result_image' not in st.session_state:
         st.session_state.result_image = None
+    if 'share_text' not in st.session_state:
+        st.session_state.share_text = ""
     
     analyzer = VoiceAnalyzer()
     
@@ -622,12 +683,8 @@ def main():
         audio_file = st.file_uploader(
             "音声ファイルをアップロード",
             type=['wav', 'mp3'],
-            help="WAVまたはMP3ファイル（30秒を超える場合は自動で30秒にカット）"
+            help="WAV、MP3ファイルをご利用ください（30秒以内）"
         )
-        
-        # ファイル形式の注意書き
-        st.markdown("📌 **対応ファイル形式**: WAV、MP3のみ  \n"
-                   "M4A、FLAC等をお持ちの場合は、音声変換アプリでWAVまたはMP3に変換してからご利用ください。")
         
         submitted = st.form_submit_button("分析開始", type="primary", use_container_width=True)
     
@@ -654,198 +711,132 @@ def main():
                 # 音声の読み込み
                 y, sr, duration = analyzer.load_audio(audio_file)
                 
-                if y is None:
-                    st.error(f"エラー: 音声ファイルは30秒以上である必要があります。（現在: {duration:.1f}秒）")
-                    return
-                
                 # 音声分析
                 metrics, y_trimmed, sr = analyzer.analyze_voice(y, sr, purpose)
                 
                 # AI診断
                 diagnosis, total_score, level, level_desc = analyzer.generate_diagnosis(metrics, purpose, formatted_name)
                 
+                # シェア用テキストの生成
+                share_text = analyzer.create_share_text(formatted_name, metrics, diagnosis, total_score, level)
+                st.session_state.share_text = share_text
+                
                 # 結果表示
                 st.success("分析が完了しました！")
                 
-                # 総合評価（星付き）
-                st.subheader("⭐ 総合評価")
-                star_rating = min(5, max(1, round(total_score / 120)))
-                stars = "⭐" * star_rating + "☆" * (5 - star_rating)
+                # メトリクス表示
+                st.subheader("📊 分析結果")
                 
-                col1, col2 = st.columns([2, 1])
+                col1, col2, col3 = st.columns(3)
                 with col1:
-                    st.markdown(f"### {stars} {total_score}/594点 ({level} - {level_desc})")
+                    st.metric("総合スコア", f"{total_score}/594点")
                 with col2:
-                    st.markdown(f"**{formatted_name}**")
+                    # 星の表示（レベル別）
+                    star_count = {"S": "⭐⭐⭐⭐⭐", "A": "⭐⭐⭐⭐", "B": "⭐⭐⭐", "C": "⭐⭐", "D": "⭐"}.get(level, "⭐")
+                    st.metric("評価レベル", f"{level} {star_count}")
+                with col3:
+                    # パーセンテージ表示
+                    percentage = min(99, int(total_score / 594 * 100))
+                    st.metric("達成度", f"{percentage}%")
                 
                 # レーダーチャート
                 radar_fig = analyzer.create_radar_chart(metrics, f"{formatted_name}の音声分析結果")
                 st.plotly_chart(radar_fig, use_container_width=True)
                 
-                # 詳細評価
-                st.subheader("📈 評価の詳細")
-                st.markdown("各項目を点数で評価しています")
-                
-                cols = st.columns(2)
+                # 詳細スコア（星とパーセンテージ付き）
+                st.subheader("📈 詳細スコア")
+                cols = st.columns(3)
                 for i, (key, name_jp) in enumerate(analyzer.metrics_names.items()):
-                    with cols[i % 2]:
+                    with cols[i % 3]:
                         score = metrics[key]
-                        # プログレスバー風の表示
-                        progress_bar = "█" * (score // 10) + "░" * (10 - score // 10)
-                        st.markdown(f"**{name_jp}**: {score}点  \n`{progress_bar}`")
+                        stars = "⭐" * int(score / 20) + "☆" * (5 - int(score / 20))
+                        st.metric(name_jp, f"{score}点 {stars}", f"{score}%")
                 
                 # AI診断結果
                 st.subheader("🤖 AI診断")
                 st.info(diagnosis)
                 
                 # 音声波形とスペクトログラム
-                st.subheader("🔊 詳細な音声分析データ")
-                
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.markdown("**波形**")
-                    waveform_fig = analyzer.create_waveform(y_trimmed, sr)
-                    st.pyplot(waveform_fig)
-                
-                with col2:
-                    st.markdown("**スペクトログラム**")
-                    spectrogram_fig = analyzer.create_spectrogram(y_trimmed, sr)
-                    st.pyplot(spectrogram_fig)
-                
-                
-                # 結果画像の生成とシェア機能
-                try:
-                    result_image = analyzer.create_result_image(
-                        formatted_name, metrics, diagnosis, total_score, level, radar_fig
-                    )
-                    st.session_state.result_image = result_image
-                except:
-                    # 画像生成エラーは無視
-                    st.session_state.result_image = None
+                with st.expander("🔊 詳細な音声分析データ"):
+                    tab1, tab2 = st.tabs(["波形", "スペクトログラム"])
                     
+                    with tab1:
+                        waveform_fig = analyzer.create_waveform(y_trimmed, sr)
+                        st.pyplot(waveform_fig)
+                    
+                    with tab2:
+                        spectrogram_fig = analyzer.create_spectrogram(y_trimmed, sr)
+                        st.pyplot(spectrogram_fig)
+                
+                # 結果画像の生成
+                result_image = analyzer.create_result_image(
+                    formatted_name, metrics, diagnosis, total_score, level, radar_fig
+                )
+                st.session_state.result_image = result_image
                 st.session_state.analysis_complete = True
                 
-                # シェア機能
-                st.markdown("---")
-                st.markdown("### 📤 結果をシェア")
-                
-                col1, col2 = st.columns(2)
-                with col1:
-                    # URLエンコードのためにインポート
-                    import urllib.parse
-                    
-                    # Xシェア用のテキスト（文字数制限対応）
-                    share_text = f"【AI音声分析結果】{stars} {total_score}点\n\n"
-                    
-                    # 各項目を短縮名とプログレスバーで表示
-                    metric_short_names = {
-                        'volume': '音量',
-                        'pitch_stability': '音程',
-                        'expression': '表現',
-                        'clarity': '明瞭',
-                        'rhythm': 'リズム',
-                        'resonance': '響き'
-                    }
-                    
-                    # 上位2項目と最下位1項目を取得
-                    sorted_metrics = sorted(metrics.items(), key=lambda x: x[1], reverse=True)
-                    
-                    # 上位2項目
-                    for key, value in sorted_metrics[:2]:
-                        bar_length = int(value / 10)  # 10文字のバーに変換
-                        bar = "■" * bar_length + "□" * (10 - bar_length)
-                        share_text += f"{metric_short_names[key]}:{value:>2}点 {bar}\n"
-                    
-                    # 最も低い項目を3つ目に表示
-                    lowest_key, lowest_value = sorted_metrics[-1]
-                    bar_length = int(lowest_value / 10)
-                    bar = "■" * bar_length + "□" * (10 - bar_length)
-                    share_text += f"{metric_short_names[lowest_key]}:{lowest_value:>2}点 {bar}\n"
-                    
-                    # AI診断から最初の一文を抽出（必ず...で終わる）
-                    first_sentence = diagnosis.split("。")[0]
-                    if len(first_sentence) > 47:
-                        first_sentence = first_sentence[:44] + "…"
-                    else:
-                        first_sentence = first_sentence + "…"
-                    
-                    share_text += f"\n{first_sentence}\n\n"
-                    share_text += "#声のAI分析"
-                    
-                    # URL用のパラメータ
-                    params = {
-                        'text': share_text,
-                        'url': 'https://micarp1221git-voice-analysis-system.streamlit.app'  # 実際のアプリURL
-                    }
-                    
-                    # URLエンコード
-                    encoded_params = urllib.parse.urlencode(params)
-                    x_share_url = f"https://twitter.com/intent/tweet?{encoded_params}"
-                    
-                    # リンクボタンとして実装
-                    st.markdown(f'''
-                    <a href="{x_share_url}" target="_blank" rel="noopener noreferrer" style="
-                        display: inline-block;
-                        width: 100%;
-                        padding: 0.5rem;
-                        background-color: #1DA1F2;
-                        color: white;
-                        text-align: center;
-                        text-decoration: none;
-                        border-radius: 4px;
-                        font-weight: 600;
-                    ">🐦 Xでシェアする</a>
-                    ''', unsafe_allow_html=True)
-                
-                with col2:
-                    if st.session_state.result_image:
-                        st.download_button(
-                            label="📱 画像をダウンロード",
-                            data=st.session_state.result_image,
-                            file_name=f"voice_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg",
-                            mime="image/jpeg",
-                            help="画像として保存",
-                            use_container_width=True
-                        )
-                    else:
-                        st.button("📱 画像をダウンロード", disabled=True, use_container_width=True, help="画像生成中...")
-                
             except Exception as e:
-                error_msg = str(e)
-                if "M4Aファイルは現在サポートされていません" in error_msg:
-                    st.error("🚫 M4Aファイルは対応していません。WAVまたはMP3ファイルをご利用ください。")
-                elif "音声ファイル形式" in error_msg and "がサポートされていません" in error_msg:
-                    st.error("🚫 このファイル形式は対応していません。WAVまたはMP3ファイルをご利用ください。")
-                elif "音声が短すぎます" in error_msg:
-                    st.error("⏱️ 音声ファイルに問題があります。別のファイルをお試しください。")
-                elif "音声ファイルの読み込みエラー" in error_msg:
-                    st.error("📁 音声ファイルが壊れているか、読み込めません。別のファイルをお試しください。")
-                else:
-                    st.error("❌ 音声の処理中にエラーが発生しました。ファイル形式や内容をご確認ください。")
+                st.error(f"エラーが発生しました: {str(e)}")
                 return
     
     # ビジネスCTAセクション
     if st.session_state.analysis_complete:
         st.markdown("---")
         
-        # 適度なCTA
+        # CTAボタンを大きく目立たせる
         st.markdown("""
-        <div style="background-color: #f8f9ff; padding: 20px; border-radius: 8px; border-left: 4px solid #4CAF50;">
-            <h3 style="color: #2E7D32; margin-top: 0;">🎯 分析結果を活かして、さらに上達しませんか？</h3>
-            <p style="margin: 15px 0; color: #333;">
-                この診断結果をもとに、プロのボイストレーナーがあなたに最適な改善プランを提案します。<br>
-                <strong>初回カウンセリング ¥9,800</strong>（通常 ¥15,000）
+        <div style="background-color: #f0f8ff; padding: 30px; border-radius: 10px; text-align: center;">
+            <h2 style="color: #1f77b4;">🎯 プロの指導で声を変えませんか？</h2>
+            <p style="font-size: 18px; margin: 20px 0;">
+                AI分析の結果を基に、プロのボイストレーナーがあなたに最適なトレーニングプランを提案します。
+            </p>
+            <p style="font-size: 24px; font-weight: bold; color: #ff6b6b; margin: 20px 0;">
+                初回カウンセリング ¥9,800（通常¥15,000）
             </p>
         </div>
         """, unsafe_allow_html=True)
         
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            if st.button("🎤 プロ指導を申し込む", type="primary", use_container_width=True):
+            if st.button("📞 無料相談を予約する", type="primary", use_container_width=True):
                 st.balloons()
-                st.success("お申し込みありがとうございます！専門スタッフからご連絡いたします。")
+                st.success("予約フォームに移動します...")
                 # ここに予約フォームへのリンクや処理を追加
         
+        # 画像ダウンロードとシェアボタンは控えめに配置
+        st.markdown("---")
+        st.markdown("### 📸 分析結果をシェア")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.session_state.result_image:
+                st.download_button(
+                    label="📱 画像として保存",
+                    data=st.session_state.result_image,
+                    file_name=f"voice_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg",
+                    mime="image/jpeg",
+                    help="SNSでシェアできる画像として保存します"
+                )
+        
+        with col2:
+            if st.session_state.share_text:
+                # X(旧Twitter)用のシェアURL作成
+                import urllib.parse
+                encoded_text = urllib.parse.quote(st.session_state.share_text)
+                share_url = f"https://twitter.com/intent/tweet?text={encoded_text}"
+                
+                st.markdown(f"""
+                <a href="{share_url}" target="_blank" style="
+                    display: inline-block;
+                    background-color: #1DA1F2;
+                    color: white;
+                    padding: 0.5rem 1rem;
+                    border-radius: 6px;
+                    text-decoration: none;
+                    font-weight: 600;
+                ">📤 Xでシェア</a>
+                """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
