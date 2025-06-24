@@ -431,59 +431,15 @@ class VoiceAnalyzer:
 def main():
     st.set_page_config(page_title="AI音声分析", page_icon="🎤", layout="wide")
     
-    # カスタムCSS - ボタンの色を深い青色に変更
+    # プロフェッショナルな白背景デザイン  
     st.markdown("""
     <style>
-    /* Streamlitのプライマリボタンの色を変更 */
-    .stButton > button[type="submit"] {
-        background-color: #1E3A8A !important;
-        border-color: #1E3A8A !important;
-        color: white !important;
-    }
-    .stButton > button[type="submit"]:hover {
-        background-color: #1E40AF !important;
-        border-color: #1E40AF !important;
-        color: white !important;
-    }
-    .stButton > button[type="submit"]:focus:not(:active) {
-        background-color: #1E3A8A !important;
-        border-color: #1E3A8A !important;
-        color: white !important;
-        box-shadow: none !important;
-    }
+    /* Streamlitアプリ全体の背景を白に設定 */
     .stApp {
         background-color: #FFFFFF !important;
-        color: #2C3E50 !important;
     }
-    .main .block-container {
-        background-color: #FFFFFF !important;
-    }
-    [data-testid="stAppViewContainer"] {
-        background-color: #FFFFFF !important;
-    }
-    /* タイトル */
-    h1 {
-        color: #1E3A8A !important;
-        font-weight: 700 !important;
-    }
-    /* サブヘッダー */
-    h2, h3 {
-        color: #1F2937 !important;
-        font-weight: 600 !important;
-    }
-    /* メトリクスカード */
-    [data-testid="metric-container"] {
-        background-color: #F8FAFC !important;
-        border: 1px solid #E2E8F0 !important;
-        border-radius: 8px !important;
-        padding: 1rem !important;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
-    }
-    /* プログレスバー */
-    .stProgress > div > div > div {
-        background-color: #3B82F6 !important;
-    }
-    /* 入力フィールド - 統一されたプロフェッショナルデザイン（ギミック削除）*/
+    
+    /* 入力フィールド - 統一されたプロフェッショナルデザイン */
     .stTextInput > div > div > input {
         background-color: #F0F4F8 !important;
         border: 2px solid #CBD5E1 !important;
@@ -498,116 +454,65 @@ def main():
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
         color: #1E293B !important;
     }
-    /* 入力後も同じ色を維持 */
-    .stTextInput > div > div > input:not(:placeholder-shown) {
-        background-color: #F0F4F8 !important;
-        color: #1E293B !important;
-    }
-    .stTextInput > div > div > input::placeholder {
-        color: #64748B !important;
-        font-style: italic !important;
-    }
     
     /* セレクトボックス - 完全統一デザイン */
-    .stSelectbox div[data-baseweb="select"] {
+    .stSelectbox > div[data-baseweb="select"] > div {
         background-color: #F0F4F8 !important;
         border: 2px solid #CBD5E1 !important;
         border-radius: 8px !important;
-        box-shadow: inset 0 1px 3px rgba(0,0,0,0.08) !important;
-    }
-    .stSelectbox div[data-baseweb="select"] > div {
-        background-color: #F0F4F8 !important;
         color: #1E293B !important;
-        font-weight: 500 !important;
-    }
-    .stSelectbox div[data-baseweb="select"] div {
-        background-color: #F0F4F8 !important;
-        color: #1E293B !important;
-    }
-    .stSelectbox div[data-baseweb="select"] span {
-        background-color: #F0F4F8 !important;
-        color: #1E293B !important;
-        font-weight: 500 !important;
-    }
-    /* セレクトボックスの全要素を強制上書き */
-    .stSelectbox * {
-        background-color: #F0F4F8 !important;
-        color: #1E293B !important;
-    }
-    /* ドロップダウンオプションのみ白背景 */
-    .stSelectbox [role="option"] {
-        background-color: #FFFFFF !important;
-        color: #1E293B !important;
-    }
-    /* プルダウン矢印 */
-    .stSelectbox svg {
-        fill: #475569 !important;
-        color: #475569 !important;
     }
     
     /* ファイルアップローダー - 完全統一デザイン */
-    .stFileUploader {
-        background-color: #F0F4F8 !important;
-    }
     .stFileUploader > div {
         background-color: #F0F4F8 !important;
         border: 2px dashed #94A3B8 !important;
         border-radius: 8px !important;
-        box-shadow: inset 0 1px 3px rgba(0,0,0,0.08) !important;
     }
-    .stFileUploader * {
+    [data-testid="stFileUploaderDropzone"] {
         background-color: #F0F4F8 !important;
         color: #1E293B !important;
     }
-    .stFileUploader label {
-        color: #1E293B !important;
-        font-weight: 600 !important;
-        background-color: #F0F4F8 !important;
-    }
-    .stFileUploader svg {
-        fill: #475569 !important;
-        color: #475569 !important;
-    }
-    .stFileUploader [data-testid="stFileUploaderDropzone"] {
-        background-color: #F0F4F8 !important;
-    }
-    .stFileUploader [data-testid="stFileUploaderDropzone"] * {
-        background-color: #F0F4F8 !important;
-        color: #1E293B !important;
-    }
-    .stFileUploader span {
-        color: #1E293B !important;
-        font-weight: 500 !important;
-        background-color: #F0F4F8 !important;
-    }
-    .stFileUploader div {
-        background-color: #F0F4F8 !important;
-    }
-    /* ボタン */
-    .stButton > button {
-        background-color: #3B82F6 !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 6px !important;
-        font-weight: 600 !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-    }
-    .stButton > button:hover {
-        background-color: #2563EB !important;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
-    }
-    /* プライマリボタン（分析開始）を目立たせる */
-    .stButton > button[kind="primary"] {
+    
+    /* プライマリボタン（分析開始）を深い青色に */
+    .stButton > button[type="submit"] {
         background-color: #1E3A8A !important;
+        border-color: #1E3A8A !important;
+        color: white !important;
         font-size: 1.1rem !important;
         padding: 0.75rem 1.5rem !important;
+        font-weight: 600 !important;
+        border-radius: 6px !important;
         box-shadow: 0 4px 6px rgba(30, 58, 138, 0.3) !important;
     }
-    .stButton > button[kind="primary"]:hover {
+    .stButton > button[type="submit"]:hover {
         background-color: #1E40AF !important;
+        border-color: #1E40AF !important;
         transform: translateY(-1px) !important;
         box-shadow: 0 6px 8px rgba(30, 58, 138, 0.4) !important;
     }
+    
+    /* タイトル */
+    h1 {
+        color: #1E3A8A !important;
+        font-weight: 700 !important;
+    }
+    
+    /* サブヘッダー */
+    h2, h3 {
+        color: #1F2937 !important;
+        font-weight: 600 !important;
+    }
+    
+    /* メトリクスカード */
+    [data-testid="metric-container"] {
+        background-color: #F8FAFC !important;
+        border: 1px solid #E2E8F0 !important;
+        border-radius: 8px !important;
+        padding: 1rem !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+    }
+    
     /* 情報ボックス */
     .stInfo {
         background-color: #EFF6FF !important;
@@ -615,6 +520,7 @@ def main():
         border-radius: 8px !important;
         padding: 1rem !important;
     }
+    
     /* サクセスメッセージ */
     .stSuccess {
         background-color: #ECFDF5 !important;
@@ -622,37 +528,13 @@ def main():
         border-radius: 8px !important;
         padding: 1rem !important;
     }
+    
     /* エラーメッセージ */
     .stError {
         background-color: #FEF2F2 !important;
         border-left: 4px solid #EF4444 !important;
         border-radius: 8px !important;
         padding: 1rem !important;
-    }
-    /* エクスパンダー */
-    .streamlit-expanderHeader {
-        background-color: #F8FAFC !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-    }
-    /* タブ */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px !important;
-    }
-    .stTabs [data-baseweb="tab"] {
-        background-color: #F1F5F9 !important;
-        border-radius: 8px 8px 0 0 !important;
-        color: #475569 !important;
-        font-weight: 500 !important;
-    }
-    .stTabs [data-baseweb="tab"][aria-selected="true"] {
-        background-color: #3B82F6 !important;
-        color: white !important;
-    }
-    /* 全体的なマージン調整 */
-    .block-container {
-        padding-top: 2rem !important;
-        padding-bottom: 2rem !important;
     }
     </style>
     """, unsafe_allow_html=True)
