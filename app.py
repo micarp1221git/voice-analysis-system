@@ -161,28 +161,6 @@ class VoiceAnalyzer:
         
         return fig
     
-    def create_waveform(self, y, sr):
-        """波形を描画"""
-        fig, ax = plt.subplots(figsize=(12, 4))
-        time = np.linspace(0, len(y) / sr, len(y))
-        ax.plot(time, y, color='blue', alpha=0.7)
-        ax.set_xlabel('時間 (秒)')
-        ax.set_ylabel('振幅')
-        ax.set_title('音声波形')
-        ax.grid(True, alpha=0.3)
-        plt.tight_layout()
-        return fig
-    
-    def create_spectrogram(self, y, sr):
-        """スペクトログラムを描画"""
-        fig, ax = plt.subplots(figsize=(12, 6))
-        D = librosa.amplitude_to_db(np.abs(librosa.stft(y)), ref=np.max)
-        img = librosa.display.specshow(D, sr=sr, x_axis='time', y_axis='hz', ax=ax)
-        fig.colorbar(img, ax=ax, format='%+2.0f dB')
-        ax.set_title('スペクトログラム')
-        plt.tight_layout()
-        return fig
-    
     def get_evaluation_level(self, total_score):
         """総合スコアから5段階評価を返す"""
         if total_score >= 450:
@@ -313,12 +291,8 @@ class VoiceAnalyzer:
         }.get(level, "black")
         draw.text((width//2, y_pos), f"評価: {level} - {level_desc}", font=text_font, fill=level_color, anchor="mt")
         
-        # レーダーチャートの代わりに各指標を視覚化
-        y_pos += 80
-        # レーダーチャートエリアをスキップ
-        
         # 各指標のスコア
-        y_pos += 100
+        y_pos += 150
         draw.text((width//2, y_pos), "詳細スコア", font=header_font, fill='black', anchor="mt")
         y_pos += 70
         
@@ -429,79 +403,126 @@ class VoiceAnalyzer:
         return share_text
 
 def main():
-    st.set_page_config(page_title="AI音声分析", page_icon="🎤", layout="wide")
+    st.set_page_config(
+        page_title="AI音声分析", 
+        page_icon="🎤", 
+        layout="wide",
+        initial_sidebar_state="collapsed"
+    )
     
-    # プロフェッショナルな白背景デザイン  
+    # 強力なCSSでダークモードを完全に無効化
     st.markdown("""
     <style>
-    /* Streamlitアプリ全体の背景を白に設定 */
-    .stApp {
-        background-color: #FFFFFF !important;
+    /* 全要素をライトモードに強制 */
+    * {
+        color-scheme: light !important;
     }
     
-    /* 入力フィールド - 統一されたプロフェッショナルデザイン */
+    /* ルート要素の背景を白に固定 */
+    html, body, [data-testid="stApp"], .main, .block-container {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+    }
+    
+    /* Streamlitアプリ全体の設定 */
+    .stApp {
+        background: #FFFFFF !important;
+        color: #000000 !important;
+    }
+    
+    /* メインコンテンツエリア */
+    .main .block-container {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+        padding-top: 2rem !important;
+    }
+    
+    /* ヘッダーとタイトル */
+    h1, h2, h3, h4, h5, h6 {
+        color: #1E3A8A !important;
+        font-weight: 600 !important;
+    }
+    
+    /* テキスト要素 */
+    p, span, div, label {
+        color: #000000 !important;
+    }
+    
+    /* 入力フィールド - 完全に白背景に */
     .stTextInput > div > div > input {
-        background-color: #F0F4F8 !important;
+        background-color: #FFFFFF !important;
         border: 2px solid #CBD5E1 !important;
         border-radius: 8px !important;
-        color: #1E293B !important;
+        color: #000000 !important;
         font-weight: 500 !important;
-        box-shadow: inset 0 1px 3px rgba(0,0,0,0.08) !important;
     }
     .stTextInput > div > div > input:focus {
-        background-color: #F0F4F8 !important;
+        background-color: #FFFFFF !important;
         border-color: #2563EB !important;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
-        color: #1E293B !important;
+        color: #000000 !important;
+    }
+    .stTextInput > div > div > input::placeholder {
+        color: #64748B !important;
     }
     
-    /* セレクトボックス - 完全統一デザイン */
-    .stSelectbox > div[data-baseweb="select"] > div {
-        background-color: #F0F4F8 !important;
+    /* セレクトボックス */
+    .stSelectbox > div > div {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
         border: 2px solid #CBD5E1 !important;
         border-radius: 8px !important;
-        color: #1E293B !important;
+    }
+    .stSelectbox > div > div > div {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+    }
+    .stSelectbox div[data-baseweb="select"] {
+        background-color: #FFFFFF !important;
+    }
+    .stSelectbox div[data-baseweb="select"] > div {
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
     }
     
-    /* ファイルアップローダー - 完全統一デザイン */
+    /* ファイルアップローダー */
     .stFileUploader > div {
-        background-color: #F0F4F8 !important;
+        background-color: #F8FAFC !important;
         border: 2px dashed #94A3B8 !important;
         border-radius: 8px !important;
     }
     [data-testid="stFileUploaderDropzone"] {
-        background-color: #F0F4F8 !important;
-        color: #1E293B !important;
+        background-color: #F8FAFC !important;
+        color: #000000 !important;
+    }
+    .stFileUploader label {
+        color: #000000 !important;
     }
     
-    /* プライマリボタン（分析開始）を深い青色に */
+    /* プライマリボタン（分析開始） */
     .stButton > button[type="submit"] {
         background-color: #1E3A8A !important;
-        border-color: #1E3A8A !important;
-        color: white !important;
+        border: none !important;
+        color: #FFFFFF !important;
         font-size: 1.1rem !important;
-        padding: 0.75rem 1.5rem !important;
         font-weight: 600 !important;
-        border-radius: 6px !important;
-        box-shadow: 0 4px 6px rgba(30, 58, 138, 0.3) !important;
+        border-radius: 8px !important;
+        padding: 0.75rem 1.5rem !important;
     }
     .stButton > button[type="submit"]:hover {
         background-color: #1E40AF !important;
-        border-color: #1E40AF !important;
-        transform: translateY(-1px) !important;
-        box-shadow: 0 6px 8px rgba(30, 58, 138, 0.4) !important;
+        color: #FFFFFF !important;
     }
     
-    /* タイトル */
-    h1 {
-        color: #1E3A8A !important;
-        font-weight: 700 !important;
+    /* 通常のボタン */
+    .stButton > button {
+        background-color: #3B82F6 !important;
+        color: #FFFFFF !important;
+        border: none !important;
+        border-radius: 6px !important;
     }
-    
-    /* サブヘッダー */
-    h2, h3 {
-        color: #1F2937 !important;
-        font-weight: 600 !important;
+    .stButton > button:hover {
+        background-color: #2563EB !important;
+        color: #FFFFFF !important;
     }
     
     /* メトリクスカード */
@@ -509,32 +530,65 @@ def main():
         background-color: #F8FAFC !important;
         border: 1px solid #E2E8F0 !important;
         border-radius: 8px !important;
-        padding: 1rem !important;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+        color: #000000 !important;
+    }
+    [data-testid="metric-container"] > div {
+        color: #000000 !important;
+    }
+    [data-testid="metric-container"] label {
+        color: #374151 !important;
     }
     
     /* 情報ボックス */
     .stInfo {
         background-color: #EFF6FF !important;
         border-left: 4px solid #3B82F6 !important;
-        border-radius: 8px !important;
-        padding: 1rem !important;
+        color: #000000 !important;
+    }
+    .stInfo > div {
+        color: #000000 !important;
     }
     
     /* サクセスメッセージ */
     .stSuccess {
         background-color: #ECFDF5 !important;
         border-left: 4px solid #10B981 !important;
-        border-radius: 8px !important;
-        padding: 1rem !important;
+        color: #000000 !important;
+    }
+    .stSuccess > div {
+        color: #000000 !important;
     }
     
     /* エラーメッセージ */
     .stError {
         background-color: #FEF2F2 !important;
         border-left: 4px solid #EF4444 !important;
-        border-radius: 8px !important;
-        padding: 1rem !important;
+        color: #000000 !important;
+    }
+    .stError > div {
+        color: #000000 !important;
+    }
+    
+    /* Plotlyチャート背景 */
+    .js-plotly-plot {
+        background-color: #FFFFFF !important;
+    }
+    
+    /* スピナー */
+    .stSpinner > div {
+        color: #000000 !important;
+    }
+    
+    /* ダウンロードボタン */
+    .stDownloadButton > button {
+        background-color: #6B7280 !important;
+        color: #FFFFFF !important;
+        border: none !important;
+    }
+    
+    /* すべてのテキストを黒に強制 */
+    .stMarkdown, .stMarkdown > div, .stText {
+        color: #000000 !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -669,7 +723,7 @@ def main():
         st.markdown("""
         <div style="background-color: #f0f8ff; padding: 30px; border-radius: 10px; text-align: center;">
             <h2 style="color: #1f77b4;">🎯 プロの指導で声を変えませんか？</h2>
-            <p style="font-size: 18px; margin: 20px 0;">
+            <p style="font-size: 18px; margin: 20px 0; color: #000000;">
                 AI分析の結果を基に、プロのボイストレーナーがあなたに最適なトレーニングプランを提案します。
             </p>
             <p style="font-size: 24px; font-weight: bold; color: #ff6b6b; margin: 20px 0;">
