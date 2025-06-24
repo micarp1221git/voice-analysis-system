@@ -734,16 +734,39 @@ def main():
                     # URLエンコードのためにインポート
                     import urllib.parse
                     
-                    # Xシェア用のテキスト
-                    share_text = f"AI音声診断の結果: {stars} {total_score}点！\n\n"
-                    share_text += f"私の声の特徴:\n"
+                    # Xシェア用のテキスト（文字数制限対応）
+                    share_text = f"【AI音声分析結果】{stars} {total_score}点\n\n"
                     
-                    # 上位2項目を取得
+                    # 各項目を短縮名とプログレスバーで表示
+                    metric_short_names = {
+                        'volume': '音量',
+                        'pitch_stability': '音程',
+                        'expression': '表現',
+                        'clarity': '明瞭',
+                        'rhythm': 'リズム',
+                        'resonance': '響き'
+                    }
+                    
+                    # 上位3項目と下位1項目を取得
                     sorted_metrics = sorted(metrics.items(), key=lambda x: x[1], reverse=True)
-                    for i, (key, value) in enumerate(sorted_metrics[:2]):
-                        share_text += f"✅ {analyzer.metrics_names[key]}: {value}点\n"
                     
-                    share_text += f"\n#音声診断 #AI分析 #ボイストレーニング"
+                    # 上位3項目
+                    for key, value in sorted_metrics[:3]:
+                        bar_length = int(value / 10)  # 10文字のバーに変換
+                        bar = "■" * bar_length + "□" * (10 - bar_length)
+                        share_text += f"{metric_short_names[key]}:{value:>2}点 {bar}\n"
+                    
+                    # 最も低い項目（改善点として）
+                    lowest_key, lowest_value = sorted_metrics[-1]
+                    share_text += f"伸びしろ→{metric_short_names[lowest_key]}:{lowest_value}点\n"
+                    
+                    # AI診断から最初の一文を抽出
+                    first_sentence = diagnosis.split("。")[0] + "。"
+                    if len(first_sentence) > 50:
+                        first_sentence = first_sentence[:47] + "..."
+                    
+                    share_text += f"\n{first_sentence}\n\n"
+                    share_text += "#声のAI分析"
                     
                     # URL用のパラメータ
                     params = {
