@@ -436,9 +436,18 @@ class VoiceAnalyzer:
 def main():
     st.set_page_config(page_title="AI音声分析", page_icon="🎤", layout="wide")
     
-    # プロフェッショナルな白背景デザイン
+    # カスタムCSS - ボタンの色を深い青色に変更
     st.markdown("""
     <style>
+    /* プライマリボタン（分析開始）の色を変更 */
+    div[data-testid="stForm"] button[kind="primary"] {
+        background-color: #1E3A8A !important;
+        border-color: #1E3A8A !important;
+    }
+    div[data-testid="stForm"] button[kind="primary"]:hover {
+        background-color: #1E40AF !important;
+        border-color: #1E40AF !important;
+    }
     .stApp {
         background-color: #FFFFFF !important;
         color: #2C3E50 !important;
@@ -755,18 +764,6 @@ def main():
                 # AI診断結果
                 st.subheader("🤖 AI診断")
                 st.info(diagnosis)
-                
-                # 音声波形とスペクトログラム
-                with st.expander("🔊 詳細な音声分析データ"):
-                    tab1, tab2 = st.tabs(["波形", "スペクトログラム"])
-                    
-                    with tab1:
-                        waveform_fig = analyzer.create_waveform(y_trimmed, sr)
-                        st.pyplot(waveform_fig)
-                    
-                    with tab2:
-                        spectrogram_fig = analyzer.create_spectrogram(y_trimmed, sr)
-                        st.pyplot(spectrogram_fig)
                 
                 # 結果画像の生成
                 result_image = analyzer.create_result_image(
